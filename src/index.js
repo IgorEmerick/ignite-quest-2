@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const isUuid = require('is-uuid');
 
 const { v4: uuidv4, validate } = require('uuid');
 
@@ -23,11 +24,41 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if (!user.pro && user.todos.length === 10) {
+    return response.status(403).json({
+      error: 'This user already have ten to-do and he is not in the pro plain!'
+    });
+  }
+
+  return next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+  const user = users.find(user => user.username === username);
+  const idIsUuid = isUuid.v4(id);
+
+  if (!user) {
+    return response.status(404).json({ error: 'User not exist!' });
+  }
+
+  if (!idIsUuid) {
+    return response.status(400).json({ error: 'Id is not an UUID!' });
+  }
+
+  const todo = user.todos.find(todo => todo.id === id);
+
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo not exist!' });
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
